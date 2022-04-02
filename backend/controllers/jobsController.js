@@ -9,15 +9,15 @@ const createJob = async (req, res) => {
   }
 
   req.body.createdBy = req.user.userId;
-
   const job = await Job.create(req.body);
   res.status(StatusCodes.CREATED).json({ job });
-
-  // res.send('Create Job');
 };
 
 const getAllJobs = async (req, res) => {
-  res.send('Get All Jobs');
+  const jobs = await Job.find({ createdBy: req.user.userId });
+  res
+    .status(StatusCodes.OK)
+    .json({ jobs, totalJobs: jobs.length, numOfPages: 1 });
 };
 
 const updateJob = async (req, res) => {

@@ -6,7 +6,7 @@
 
 #### LAST COURSE
 
-- 139. Get All Jobs Controller
+- 148. SetEditJob Functionality
 
 ##### IMPORTANT COURSE
 
@@ -32,6 +32,7 @@ kill -9 {PID}
 - ls -a
 - rm -rf .git
 - move .gitignore to root folder
+- git init
 
 ```sh
 .gitignore
@@ -262,3 +263,16 @@ if (isMember) {
 ```
 
 - Clean code goes to Section 19 | Course 88 | Login User - Refactor
+
+---
+
+#### .env setup
+
+```
+NODE_ENV
+PORT
+MONGO_URL
+JWT_SECRET
+JWT_LIFETIME
+FAST_REFRESH = false
+```

@@ -16,6 +16,8 @@ import {
   CREATE_JOB_BEGIN,
   CREATE_JOB_SUCCESS,
   CREATE_JOB_ERROR,
+  GET_JOBS_BEGIN,
+  GET_JOBS_SUCCESS,
 } from './actions';
 import reducer from './reducers';
 
@@ -44,6 +46,11 @@ const initialState = {
   jobType: 'full-time',
   statusOptions: ['pending', 'interview', 'declined'],
   status: 'pending',
+
+  jobs: [],
+  totalJobs: 0,
+  numOfPages: 1,
+  page: 1,
 };
 
 const AppContext = React.createContext();
@@ -169,10 +176,8 @@ const AppProvider = ({ children }) => {
   // MARK: CREATE JOB
   async function createJob() {
     dispatch({ type: CREATE_JOB_BEGIN });
-
     try {
       const { position, company, jobLocation, jobType, status } = state;
-
       await authFetch.post('/jobs', {
         position,
         company,
@@ -180,17 +185,50 @@ const AppProvider = ({ children }) => {
         jobType,
         status,
       });
-
       dispatch({ type: CREATE_JOB_SUCCESS });
       dispatch({ type: CLEAR_VALUES });
     } catch (error) {
-      if (error.response.status !== 401) return;
+      console.log(error.response);
+
+      if (error.response.status === 401) return;
       dispatch({
         type: CREATE_JOB_ERROR,
         payload: { message: error.response.data.message },
       });
     }
     clearAlert();
+  }
+
+  // MARK: GET ALL JOBS
+  async function getJobs() {
+    let url = `/jobs`;
+    dispatch({ type: GET_JOBS_BEGIN });
+    try {
+      const { data } = await authFetch(url);
+      const { jobs, totalJobs, numOfPages } = data;
+      dispatch({
+        type: GET_JOBS_SUCCESS,
+        payload: {
+          jobs,
+          totalJobs,
+          numOfPages,
+        },
+      });
+    } catch (error) {
+      console.log(error.response);
+      logoutUser();
+    }
+    clearAlert();
+  }
+
+  // MARK: EDIT JOB
+  function setEditJob(id) {
+    console.log(`SET EDIT JOB : ${id}`);
+  }
+
+  // MARK: DELETE JOB
+  function deleteJob(id) {
+    console.log(`DELETE : ${id}`);
   }
 
   const value = {
@@ -203,6 +241,9 @@ const AppProvider = ({ children }) => {
     updateUser,
     logoutUser,
     createJob,
+    getJobs,
+    setEditJob,
+    deleteJob,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
