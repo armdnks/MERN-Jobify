@@ -25,10 +25,12 @@ import {
   EDIT_JOB_ERROR,
   SHOW_STATS_BEGIN,
   SHOW_STATS_SUCCESS,
+  CLEAR_FILTERS,
+  CHANGE_PAGE,
 } from './actions';
 import reducer from './reducers';
 
-// MARK: INITIAL STATE
+// MARK: LOCAL STORAGE
 const user = localStorage.getItem('user');
 const token = localStorage.getItem('token');
 const userLocation = localStorage.getItem('location');
@@ -66,6 +68,13 @@ const initialState = {
   // MARK: STATS STATE
   stats: {},
   monthlyApplications: [],
+
+  // MARK: SEARCH FILTERS
+  search: '',
+  searchStatus: 'all',
+  searchType: 'all',
+  sort: 'latest',
+  sortOptions: ['latest', 'oldest', 'a-z', 'z-a'],
 };
 
 const AppContext = React.createContext();
@@ -216,7 +225,12 @@ const AppProvider = ({ children }) => {
 
   // MARK: GET ALL JOBS
   async function getJobs() {
-    let url = `/jobs`;
+    const { page, search, searchStatus, searchType, sort } = state;
+    let url = `/jobs?page=${page}&status=${searchStatus}&jobType=${searchType}&sort=${sort}`;
+    if (search) {
+      url = url + `&search=${search}`;
+    }
+
     dispatch({ type: GET_JOBS_BEGIN });
     try {
       const { data } = await authFetch(url);
@@ -231,7 +245,7 @@ const AppProvider = ({ children }) => {
       });
     } catch (error) {
       console.log(error.response);
-      logoutUser();
+      // logoutUser();
     }
     clearAlert();
   }
@@ -294,6 +308,16 @@ const AppProvider = ({ children }) => {
     clearAlert();
   }
 
+  // MARK: SEARCH FILTERS
+  function clearFilters() {
+    dispatch({ type: CLEAR_FILTERS });
+  }
+
+  // MARK: PAGE NUMBER
+  function changePage(page) {
+    dispatch({ type: CHANGE_PAGE, payload: { page } });
+  }
+
   const value = {
     ...state,
     displayAlert,
@@ -309,6 +333,8 @@ const AppProvider = ({ children }) => {
     editJob,
     deleteJob,
     showStats,
+    clearFilters,
+    changePage,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
