@@ -18,6 +18,13 @@ import {
   CREATE_JOB_ERROR,
   GET_JOBS_BEGIN,
   GET_JOBS_SUCCESS,
+  SET_EDIT_JOB,
+  DELETE_JOB_BEGIN,
+  EDIT_JOB_BEGIN,
+  EDIT_JOB_SUCCESS,
+  EDIT_JOB_ERROR,
+  SHOW_STATS_BEGIN,
+  SHOW_STATS_SUCCESS,
 } from './actions';
 import reducer from './reducers';
 
@@ -27,30 +34,38 @@ const token = localStorage.getItem('token');
 const userLocation = localStorage.getItem('location');
 
 const initialState = {
+  // MARK: GLOBAL STATE
   isLoading: false,
   showAlert: false,
   alertText: '',
   alertType: '',
   showSidebar: false,
 
+  // MARK: USER STATE
   user: user ? JSON.parse(user) : null,
   token: token,
   userLocation: userLocation || '',
 
+  // MARK: SINGLE JOB STATE
   isEditing: false,
   editJobId: '',
   position: '',
   company: '',
   jobLocation: userLocation || '',
-  jobTypeOptions: ['full-time', 'part-time', 'remote', 'intership'],
+  jobTypeOptions: ['full-time', 'part-time', 'remote', 'internship'],
   jobType: 'full-time',
   statusOptions: ['pending', 'interview', 'declined'],
   status: 'pending',
 
+  // MARK: ALL JOBS STATE
   jobs: [],
   totalJobs: 0,
   numOfPages: 1,
   page: 1,
+
+  // MARK: STATS STATE
+  stats: {},
+  monthlyApplications: [],
 };
 
 const AppContext = React.createContext();
@@ -222,13 +237,61 @@ const AppProvider = ({ children }) => {
   }
 
   // MARK: EDIT JOB
-  function setEditJob(id) {
-    console.log(`SET EDIT JOB : ${id}`);
+  function setEditJob(jobId) {
+    dispatch({ type: SET_EDIT_JOB, payload: { jobId } });
+  }
+
+  async function editJob() {
+    dispatch({ type: EDIT_JOB_BEGIN });
+    try {
+      const { position, company, jobLocation, jobType, status } = state;
+      await authFetch.patch(`/jobs/${state.editJobId}`, {
+        position,
+        company,
+        jobLocation,
+        jobType,
+        status,
+      });
+      dispatch({ type: EDIT_JOB_SUCCESS });
+      dispatch({ type: CLEAR_VALUES });
+    } catch (error) {
+      if (error.response.status === 401) return;
+      dispatch({
+        type: EDIT_JOB_ERROR,
+        payload: { message: error.response.data.message },
+      });
+    }
+    clearAlert();
   }
 
   // MARK: DELETE JOB
-  function deleteJob(id) {
-    console.log(`DELETE : ${id}`);
+  async function deleteJob(jobId) {
+    dispatch({ type: DELETE_JOB_BEGIN });
+    try {
+      await authFetch.delete(`/jobs/${jobId}`);
+      getJobs();
+    } catch (error) {
+      console.log(error.response);
+      logoutUser();
+    }
+  }
+
+  // MARK: SHOW STATS
+  async function showStats() {
+    dispatch({ type: SHOW_STATS_BEGIN });
+    try {
+      const { data } = await authFetch('/jobs/stats');
+      dispatch({
+        type: SHOW_STATS_SUCCESS,
+        payload: {
+          stats: data.defaultStats,
+          monthlyApplications: data.monthlyApplications,
+        },
+      });
+    } catch (error) {
+      console.log(error.response);
+    }
+    clearAlert();
   }
 
   const value = {
@@ -243,7 +306,9 @@ const AppProvider = ({ children }) => {
     createJob,
     getJobs,
     setEditJob,
+    editJob,
     deleteJob,
+    showStats,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

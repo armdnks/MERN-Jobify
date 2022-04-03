@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Admin",
+    "email": "admin@demo.com",
+    "password": "demodemo",
+    "lastName": "Demo",
+    "location": "Spain"
+  },
+  {
+    "name": "John",
+    "email": "john@demo.com",
+    "password": "demodemo",
+    "lastName": "Doe",
+    "location": "Mexico"
+  },
+  {
+    "name": "Jane",
+    "email": "jane@demo.com",
+    "password": "demodemo",
+    "lastName": "Doe",
+    "location": "Norway"
+  }
+]

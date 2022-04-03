@@ -272,6 +272,9 @@ ul {
   animation: spinner 2s linear infinite;
 }
 .loading-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   margin: 0 auto;
 }
 /* title */
